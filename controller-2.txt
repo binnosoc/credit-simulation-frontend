@@ -1,0 +1,152 @@
+package com.binnosoc.simulation.authentication;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.mail.MessagingException;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.ui.Model;
+import org.springframework.web.ErrorResponse;
+import org.springframework.web.bind.annotation.*;
+
+import com.binnosoc.simulation.model.User;
+
+import java.util.Optional;
+
+@RestController
+@RequestMapping("auth")
+@RequiredArgsConstructor
+@Tag(name = "Authentication", description = "Operations related to user authentication")
+public class AuthenticationController {
+
+    private final AuthenticationService service;
+    private final PasswordResetService passwordResetService;
+
+    @Operation(summary = "Register a new user", description = "Registers a new user and sends an account activation email.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "202", description = "Registration successful, email sent"),
+            @ApiResponse(responseCode = "400", description = "Invalid input data", 
+                        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "500", description = "Internal server error", 
+                        content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    })
+    @PostMapping("/register")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public ResponseEntity<?> register(
+            @RequestBody @Valid RegistrationRequest request
+    ) throws MessagingException {
+        service.register(request);
+        return ResponseEntity.accepted().build();
+    }
+
+    @Operation(summary = "Authenticate a user", description = "Authenticates a user and returns a JWT token.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Authentication successful, token returned"),
+            @ApiResponse(responseCode = "401", description = "Authentication failed", 
+                        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "500", description = "Internal server error", 
+                        content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    })
+    @PostMapping("/authenticate")
+    public ResponseEntity<AuthenticationResponse> authenticate(
+            @RequestBody AuthenticationRequest request
+    ) {
+        return ResponseEntity.ok(service.authenticate(request));
+    }
+
+    @Operation(summary = "Activate a user account", description = "Activates a user's account using the token sent in the activation email.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Account activated successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid token", 
+                        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "500", description = "Internal server error", 
+                        content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    })
+    @GetMapping("/activate-account")
+    public void confirm(
+            @RequestParam String token
+    ) throws MessagingException {
+        service.activateAccount(token);
+    }
+
+    @Operation(summary = "Initiate password reset", description = "Sends an email to the user with a link to reset their password.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Password reset initiated, email sent"),
+            @ApiResponse(responseCode = "400", description = "Invalid email address", 
+                        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "500", description = "Internal server error", 
+                        content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    })
+    @PostMapping("/forgot-password")
+    public ResponseEntity<AuthenticationResponse> resetPassword(
+            @RequestBody SetPasswordRequest request
+    ) throws MessagingException {
+        return ResponseEntity.ok(passwordResetService.createPasswordResetTokenForUser(request));
+    }
+
+    @Operation(summary = "Show password reset page", description = "Validates the password reset token and displays the password reset page.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Token valid, password reset page displayed"),
+            @ApiResponse(responseCode = "400", description = "Invalid or expired token", 
+                        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "500", description = "Internal server error", 
+                        content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    })
+    @GetMapping("/reset-password")
+    public String showResetPasswordPage(@RequestParam String token, Model model) {
+        String result = passwordResetService.validatePasswordResetToken(token);
+
+        if (!"valid".equals(result)) {
+            model.addAttribute("message", result.equals("invalidToken") ? "Invalid token" : "Expired token");
+            return "error";
+        }
+
+        model.addAttribute("token", token);
+        return "reset-password";
+    }
+
+    @Operation(summary = "Handle password reset", description = "Handles the password reset process once the user submits their new password.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Password reset successful, user redirected to login page"),
+            @ApiResponse(responseCode = "400", description = "Invalid or expired token", 
+                        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "500", description = "Internal server error", 
+                        content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    })
+    @PostMapping("/reset-password")
+    public String handlePasswordReset(@RequestParam String token, 
+                                      @RequestParam String newPassword, 
+                                      Model model) {
+        String result = passwordResetService.validatePasswordResetToken(token);
+
+        if (!"valid".equals(result)) {
+            model.addAttribute("message", result.equals("invalidToken") ? "Invalid token" : "Expired token");
+            return "error";
+        }
+
+        Optional<User> user = Optional.ofNullable(passwordResetService.getUserByPasswordResetToken(token));
+
+        if (user.isPresent()) {
+            passwordResetService.changeUserPassword(user.get(), newPassword);
+            passwordResetService.deletePasswordResetToken(token);
+
+            model.addAttribute("message", "Your password has been reset successfully.");
+            return "login";
+        } else {
+            model.addAttribute("message", "An error occurred. Please try again.");
+            return "error";
+        }
+    }
+
+    @GetMapping("/search")
+    public Optional<User> showResetPasswordPage(@RequestParam String email) {
+        
+        return service.getUserByEmail(email);
+    }
+}

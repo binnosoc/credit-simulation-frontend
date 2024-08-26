@@ -14,6 +14,8 @@ import { Authenticate$Params } from '../fn/authentication/authenticate';
 import { AuthenticationResponse } from '../models/authentication-response';
 import { confirm } from '../fn/authentication/confirm';
 import { Confirm$Params } from '../fn/authentication/confirm';
+import { getUserByEmail } from '../fn/authentication/get-user-by-email';
+import { GetUserByEmail$Params } from '../fn/authentication/get-user-by-email';
 import { handlePasswordReset } from '../fn/authentication/handle-password-reset';
 import { HandlePasswordReset$Params } from '../fn/authentication/handle-password-reset';
 import { register } from '../fn/authentication/register';
@@ -22,11 +24,8 @@ import { resetPassword } from '../fn/authentication/reset-password';
 import { ResetPassword$Params } from '../fn/authentication/reset-password';
 import { showResetPasswordPage } from '../fn/authentication/show-reset-password-page';
 import { ShowResetPasswordPage$Params } from '../fn/authentication/show-reset-password-page';
+import { User } from '../models/user';
 
-
-/**
- * Operations related to user authentication
- */
 @Injectable({ providedIn: 'root' })
 export class AuthenticationService extends BaseService {
   constructor(config: ApiConfiguration, http: HttpClient) {
@@ -37,10 +36,6 @@ export class AuthenticationService extends BaseService {
   static readonly ShowResetPasswordPagePath = '/auth/reset-password';
 
   /**
-   * Show password reset page.
-   *
-   * Validates the password reset token and displays the password reset page.
-   *
    * This method provides access to the full `HttpResponse`, allowing access to response headers.
    * To access only the response body, use `showResetPasswordPage()` instead.
    *
@@ -51,10 +46,6 @@ export class AuthenticationService extends BaseService {
   }
 
   /**
-   * Show password reset page.
-   *
-   * Validates the password reset token and displays the password reset page.
-   *
    * This method provides access only to the response body.
    * To access the full response (for headers, for example), `showResetPasswordPage$Response()` instead.
    *
@@ -70,10 +61,6 @@ export class AuthenticationService extends BaseService {
   static readonly HandlePasswordResetPath = '/auth/reset-password';
 
   /**
-   * Handle password reset.
-   *
-   * Handles the password reset process once the user submits their new password.
-   *
    * This method provides access to the full `HttpResponse`, allowing access to response headers.
    * To access only the response body, use `handlePasswordReset()` instead.
    *
@@ -84,10 +71,6 @@ export class AuthenticationService extends BaseService {
   }
 
   /**
-   * Handle password reset.
-   *
-   * Handles the password reset process once the user submits their new password.
-   *
    * This method provides access only to the response body.
    * To access the full response (for headers, for example), `handlePasswordReset$Response()` instead.
    *
@@ -103,10 +86,6 @@ export class AuthenticationService extends BaseService {
   static readonly RegisterPath = '/auth/register';
 
   /**
-   * Register a new user.
-   *
-   * Registers a new user and sends an account activation email.
-   *
    * This method provides access to the full `HttpResponse`, allowing access to response headers.
    * To access only the response body, use `register()` instead.
    *
@@ -118,10 +97,6 @@ export class AuthenticationService extends BaseService {
   }
 
   /**
-   * Register a new user.
-   *
-   * Registers a new user and sends an account activation email.
-   *
    * This method provides access only to the response body.
    * To access the full response (for headers, for example), `register$Response()` instead.
    *
@@ -140,10 +115,6 @@ export class AuthenticationService extends BaseService {
   static readonly ResetPasswordPath = '/auth/forgot-password';
 
   /**
-   * Initiate password reset.
-   *
-   * Sends an email to the user with a link to reset their password.
-   *
    * This method provides access to the full `HttpResponse`, allowing access to response headers.
    * To access only the response body, use `resetPassword()` instead.
    *
@@ -154,10 +125,6 @@ export class AuthenticationService extends BaseService {
   }
 
   /**
-   * Initiate password reset.
-   *
-   * Sends an email to the user with a link to reset their password.
-   *
    * This method provides access only to the response body.
    * To access the full response (for headers, for example), `resetPassword$Response()` instead.
    *
@@ -173,10 +140,6 @@ export class AuthenticationService extends BaseService {
   static readonly AuthenticatePath = '/auth/authenticate';
 
   /**
-   * Authenticate a user.
-   *
-   * Authenticates a user and returns a JWT token.
-   *
    * This method provides access to the full `HttpResponse`, allowing access to response headers.
    * To access only the response body, use `authenticate()` instead.
    *
@@ -187,10 +150,6 @@ export class AuthenticationService extends BaseService {
   }
 
   /**
-   * Authenticate a user.
-   *
-   * Authenticates a user and returns a JWT token.
-   *
    * This method provides access only to the response body.
    * To access the full response (for headers, for example), `authenticate$Response()` instead.
    *
@@ -202,14 +161,35 @@ export class AuthenticationService extends BaseService {
     );
   }
 
+  /** Path part for operation `getUserByEmail()` */
+  static readonly GetUserByEmailPath = '/auth/search';
+
+  /**
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `getUserByEmail()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getUserByEmail$Response(params: GetUserByEmail$Params, context?: HttpContext): Observable<StrictHttpResponse<User>> {
+    return getUserByEmail(this.http, this.rootUrl, params, context);
+  }
+
+  /**
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `getUserByEmail$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getUserByEmail(params: GetUserByEmail$Params, context?: HttpContext): Observable<User> {
+    return this.getUserByEmail$Response(params, context).pipe(
+      map((r: StrictHttpResponse<User>): User => r.body)
+    );
+  }
+
   /** Path part for operation `confirm()` */
   static readonly ConfirmPath = '/auth/activate-account';
 
   /**
-   * Activate a user account.
-   *
-   * Activates a user's account using the token sent in the activation email.
-   *
    * This method provides access to the full `HttpResponse`, allowing access to response headers.
    * To access only the response body, use `confirm()` instead.
    *
@@ -220,10 +200,6 @@ export class AuthenticationService extends BaseService {
   }
 
   /**
-   * Activate a user account.
-   *
-   * Activates a user's account using the token sent in the activation email.
-   *
    * This method provides access only to the response body.
    * To access the full response (for headers, for example), `confirm$Response()` instead.
    *

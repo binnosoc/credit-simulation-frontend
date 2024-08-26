@@ -1,1 +1,18 @@
-<p>menu works!</p>
+<ul class="sidebar-nav" id="sidebar-nav">
+
+    <li class="nav-item" *ngFor="let menu of menuProperties" >
+        
+        <a class="nav-link collapsed" [attr.data-bs-target]="'#'+menu.id" data-bs-toggle="collapse" [href]="'#'" 
+        (click)="menu.id === 'dashboard' ? navigate(menu) : null">
+            <i class="{{menu.icon}}"></i><span>{{menu.titre}} </span><i *ngIf="menu.id != 'dashboard'" class="bi bi-chevron-down ms-auto"></i>
+        </a>
+        <ul id="{{menu.id}}" *ngFor="let menuElt of menu.sousMenu" class="nav-content collapse " data-bs-parent="#sidebar-nav">
+            <li>
+                <a href="javascript:void(0);" (click)="navigate(menuElt)" [ngClass]="{'active': menuElt.active}">
+                    <i class="{{menuElt.icon}}"></i><span>{{ menuElt.titre }}</span>
+                  </a>
+            </li>
+        </ul>
+    </li><!-- End Components Nav -->
+
+</ul>
