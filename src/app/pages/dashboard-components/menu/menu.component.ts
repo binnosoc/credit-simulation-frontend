@@ -18,7 +18,7 @@ export class MenuComponent implements OnInit {
       id: 'dashboard',
       titre: 'Simulateur',
       icon: 'bi bi-calculator-fill',
-      url: ''
+      url: 'sim'
     },
     {
       id: 'statistique',

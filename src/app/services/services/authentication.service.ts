@@ -41,7 +41,8 @@ export class AuthenticationService extends BaseService {
    *
    * This method doesn't expect any request body.
    */
-  showResetPasswordPage$Response(params: ShowResetPasswordPage$Params, context?: HttpContext): Observable<StrictHttpResponse<string>> {
+  showResetPasswordPage$Response(params: ShowResetPasswordPage$Params, context?: HttpContext): Observable<StrictHttpResponse<{
+}>> {
     return showResetPasswordPage(this.http, this.rootUrl, params, context);
   }
 
@@ -51,9 +52,12 @@ export class AuthenticationService extends BaseService {
    *
    * This method doesn't expect any request body.
    */
-  showResetPasswordPage(params: ShowResetPasswordPage$Params, context?: HttpContext): Observable<string> {
+  showResetPasswordPage(params: ShowResetPasswordPage$Params, context?: HttpContext): Observable<{
+}> {
     return this.showResetPasswordPage$Response(params, context).pipe(
-      map((r: StrictHttpResponse<string>): string => r.body)
+      map((r: StrictHttpResponse<{
+}>): {
+} => r.body)
     );
   }
 
@@ -66,7 +70,8 @@ export class AuthenticationService extends BaseService {
    *
    * This method doesn't expect any request body.
    */
-  handlePasswordReset$Response(params: HandlePasswordReset$Params, context?: HttpContext): Observable<StrictHttpResponse<string>> {
+  handlePasswordReset$Response(params: HandlePasswordReset$Params, context?: HttpContext): Observable<StrictHttpResponse<{
+}>> {
     return handlePasswordReset(this.http, this.rootUrl, params, context);
   }
 
@@ -76,9 +81,12 @@ export class AuthenticationService extends BaseService {
    *
    * This method doesn't expect any request body.
    */
-  handlePasswordReset(params: HandlePasswordReset$Params, context?: HttpContext): Observable<string> {
+  handlePasswordReset(params: HandlePasswordReset$Params, context?: HttpContext): Observable<{
+}> {
     return this.handlePasswordReset$Response(params, context).pipe(
-      map((r: StrictHttpResponse<string>): string => r.body)
+      map((r: StrictHttpResponse<{
+}>): {
+} => r.body)
     );
   }
 

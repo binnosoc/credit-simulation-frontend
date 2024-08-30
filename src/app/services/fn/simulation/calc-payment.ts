@@ -6,18 +6,17 @@ import { filter, map } from 'rxjs/operators';
 import { StrictHttpResponse } from '../../strict-http-response';
 import { RequestBuilder } from '../../request-builder';
 
+import { SimRequest } from '../../models/sim-request';
+import { SimResponse } from '../../models/sim-response';
 
-export interface HandlePasswordReset$Params {
-  token: string;
-  newPassword: string;
+export interface CalcPayment$Params {
+      body: SimRequest
 }
 
-export function handlePasswordReset(http: HttpClient, rootUrl: string, params: HandlePasswordReset$Params, context?: HttpContext): Observable<StrictHttpResponse<{
-}>> {
-  const rb = new RequestBuilder(rootUrl, handlePasswordReset.PATH, 'post');
+export function calcPayment(http: HttpClient, rootUrl: string, params: CalcPayment$Params, context?: HttpContext): Observable<StrictHttpResponse<SimResponse>> {
+  const rb = new RequestBuilder(rootUrl, calcPayment.PATH, 'post');
   if (params) {
-    rb.query('token', params.token, {});
-    rb.query('newPassword', params.newPassword, {});
+    rb.body(params.body, 'application/json');
   }
 
   return http.request(
@@ -25,10 +24,9 @@ export function handlePasswordReset(http: HttpClient, rootUrl: string, params: H
   ).pipe(
     filter((r: any): r is HttpResponse<any> => r instanceof HttpResponse),
     map((r: HttpResponse<any>) => {
-      return r as StrictHttpResponse<{
-      }>;
+      return r as StrictHttpResponse<SimResponse>;
     })
   );
 }
 
-handlePasswordReset.PATH = '/auth/reset-password';
+calcPayment.PATH = '/sim/calc-payment';

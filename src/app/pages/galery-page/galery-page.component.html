@@ -1,0 +1,29 @@
+<div class="row">
+    <form #f="ngForm" (ngSubmit)="onSearch(f.value)" >
+        <div class="row p-1 block mt-3">
+            <label for="colFormLabelLg" class="col-sm-9 col-form-label col-form-label-lg">Mot clé</label>
+            <div class="col-sm-3">
+                <input type="text" name="motCle" class="form-control form-control-lg" id="colFormLabelLg" ngModel 
+                   >
+            </div>
+        </div>
+
+        <div class="row mt-3">
+            <button type="submit" class="btn btn-outline-primary" >Chercher</button>
+        </div>
+    </form>
+    
+</div>
+<div *ngIf="results.length > 0" class="row mt-3">
+    <div *ngFor="let item of results" class="col-md-4 mb-4">
+      <div class="card">
+        <img [src]="item.previewURL" class="card-img-top" alt="{{item.tags}}" />
+        <div class="card-body">
+          <h5 class="card-title">{{item.tags}}</h5>
+          <p class="card-text">Views: {{item.views}}</p>
+          <p class="card-text">Likes: {{item.likes}}</p>
+          <a [href]="item.pageURL" class="btn btn-primary" target="_blank">View Image</a>
+        </div>
+      </div>
+    </div>
+  </div>

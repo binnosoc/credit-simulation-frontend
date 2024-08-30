@@ -11,7 +11,8 @@ export interface ShowResetPasswordPage$Params {
   token: string;
 }
 
-export function showResetPasswordPage(http: HttpClient, rootUrl: string, params: ShowResetPasswordPage$Params, context?: HttpContext): Observable<StrictHttpResponse<string>> {
+export function showResetPasswordPage(http: HttpClient, rootUrl: string, params: ShowResetPasswordPage$Params, context?: HttpContext): Observable<StrictHttpResponse<{
+}>> {
   const rb = new RequestBuilder(rootUrl, showResetPasswordPage.PATH, 'get');
   if (params) {
     rb.query('token', params.token, {});
@@ -22,7 +23,8 @@ export function showResetPasswordPage(http: HttpClient, rootUrl: string, params:
   ).pipe(
     filter((r: any): r is HttpResponse<any> => r instanceof HttpResponse),
     map((r: HttpResponse<any>) => {
-      return r as StrictHttpResponse<string>;
+      return r as StrictHttpResponse<{
+      }>;
     })
   );
 }
